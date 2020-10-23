@@ -63,6 +63,7 @@
         <div id="plotlyDiv" v-bind:style="cstyleAll"></div>
       </v-layout>
     </v-row>
+
   </div>
 </template>
 
@@ -72,6 +73,7 @@ import axios from 'axios';
 export default {
     data () {
       return {
+        overlay:false,
         selChartView:'Growth',
         chartView:['Growth','Price'],
         stockSymbolAdd:'',
@@ -141,11 +143,25 @@ export default {
         for(let i=0;i<this.stockData.length;i++){
           let xData=Object.keys(this.stockData[i].DtStockPrice);
           let yDataFullVals=Object.values(this.stockData[i].DtStockPrice);
+          let yTxt=Object.values(this.stockData[i].DtStockPrice);
           if(this.selChartView=="Price"){
-            dispData.push({type:"scatter",mode:"lines",name:this.stockData[i].Symbol,dispText:this.stockData[i].CompanyName,x:xData,y:yDataFullVals})
+            dispData.push({
+              type:"scatter",
+              mode:"lines",
+              name:this.stockData[i].Symbol,
+              //text:this.stockData[i].CompanyName,
+              x:xData,
+              y:yDataFullVals,
+              txt:yTxt,
+              hovertemplate: "<b>" + this.stockData[i].Symbol + " - %{x}</b> <br>Price: %{y:$.2f}<extra></extra>"
+            })
           }else{
             let d=Object.values(this.stockData[i].DtStockPrice)[0];
             let yDataGrowth=[];
+            let hvrtemp="<b>" + this.stockData[i].Symbol + " - %{x}</b><br>Growth: %{y:.0%} <br>Price: %{text:$.2f} <extra></extra>";
+            if(this.selChartView=="Anchor" && this.symAnchor){
+              hvrtemp="<b>" + this.stockData[i].Symbol + " - %{x}</b><br>Growth vs " + this.symAnchor + ": %{y:.0%} <br>Price: %{text:$.2f} <extra></extra>";
+            }
             for(let j=0;j<yDataFullVals.length;j++){
               if(this.selChartView=="Anchor" && this.symAnchor){
                 yDataGrowth.push((yDataFullVals[j]/d)-yCompGrowth[j])
@@ -153,9 +169,19 @@ export default {
                 yDataGrowth.push(yDataFullVals[j]/d)
               }
             }
-            dispData.push({type:"scatter",mode:"lines",name:this.stockData[i].Symbol,dispText:this.stockData[i].CompanyName,x:xData,y:yDataGrowth})
+            dispData.push({
+              type:"scatter",
+              mode:"lines",
+              name:this.stockData[i].Symbol,
+              //text:this.stockData[i].CompanyName,
+              x:xData,
+              y:yDataGrowth,
+              text:yTxt,
+              hovertemplate: hvrtemp
+            })
           }
         }
+        
         var layout = { 
           hovermode: 'closest',
           legend: {
